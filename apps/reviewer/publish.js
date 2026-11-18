@@ -1,0 +1,57 @@
+import { execFileSync } from 'node:child_process';
+import { existsSync, lstatSync, readFileSync, writeFileSync } from 'node:fs';
+import { reviewFields } from '@til/journal/review';
+import { readReview, writeReview } from '@til/journal/review-file';
+import { dayOf, readNote } from '@til/journal/notes';
+import { pullRequest, readEvent } from './github.js';
+import { reviewNote } from './gemini.js';
+import { conversation, messages } from './conversation.js';
+import { cachedReviews, escape } from './report.js';
+import { topics } from './github.js';
+
+const treeEntry = (ref, path) => execFileSync('git', ['ls-tree', ref, '--', path], { encoding: 'utf8' }).trim();
+
+function reportBody(review) {
+    const lines = Object.entries(reviewFields).map(([key, label]) => {
+      const text = escape(review[key]).replace(/[{}\[\]*_\\]/g, ch => '&#' + ch.charCodeAt(0) + ';').replace(/\s+/g, ' ').trim();
+      return '- **' + label + '** — ' + text;
+    });
+  return lines.join('\n');
+}
+
+export async function publish(event, pr = pullRequest(event.pull_request.number), generate = reviewNote) {
+  const merged = event.pull_request;
+  const files = pr.files();
+  if (files.length >= 3000 && files.length !== pr.details().changed_files) throw Error('PR 파일 목록이 잘렸습니다.');
+  const notes = files.filter(file => file.status !== 'removed' && dayOf(file.filename));
+  if (!notes.length) return;
+  const comments = pr.comments().filter(c => !merged.merged_at || c.created_at <= merged.merged_at);
+  const days = notes.map(file => dayOf(file.filename));
+  const chat = conversation(comments, event.repository.owner.id, days);
+  const cache = cachedReviews(chat.report);
+  let knownTags;
+  for (const { filename: path } of notes) {
+    const entry = treeEntry(merged.merge_commit_sha, path);
+    // 이후 PR에서 같은 글을 고쳤다면 이전 버전의 리뷰를 덮어쓰지 않는다.
+    if (!entry || entry !== treeEntry('HEAD', path)) continue;
+    const day = dayOf(path);
+    const sha = entry.match(/^100(?:644|755) blob ([0-9a-f]+)\t/)?.[1];
+    if (!sha) throw Error(path + ' · 일반 Markdown 파일이 필요합니다.');
+    const output = path.replace(/title\.md$/, 'review.md');
+    if (lstatSync(output, { throwIfNoEntry: false })?.isSymbolicLink()) throw Error('review.md는 일반 파일이어야 합니다.');
+    const previous = existsSync(output) ? readReview(readFileSync(output, 'utf8')) : null;
+    if (previous?.source === sha && previous?.merge === merged.merge_commit_sha) continue;
+
+    const { author } = readNote(path, readFileSync(path, 'utf8'));
+    const result = cache[sha] ?? await generate(author, knownTags ??= topics(pr.repoLabels()));
+    const turns = chat.finish ? messages(chat, day) : [];
+    const meta = {
+      source: sha, merge: merged.merge_commit_sha,
+      categories: result.categories, tags: result.tags,
+      review_thread: [...(previous?.review_thread ?? []), ...turns],
+    };
+    writeFileSync(output, writeReview(meta, previous?.body || reportBody(result)));
+
+  }
+}
+if (import.meta.main) await publish(readEvent());

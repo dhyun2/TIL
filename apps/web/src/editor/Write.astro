@@ -1,0 +1,22 @@
+---
+import Layout from '../components/Layout.astro';
+import { sitePath } from '../lib/paths';
+import './editor.css';
+---
+<Layout title="글쓰기" current="write">
+  <section class="writer" data-api={sitePath('write/api/')}>
+    <header class="writer-heading"><h1>공부 기록 쓰기</h1>
+      <div class="writer-actions"><label>기록 날짜 <input type="date" id="write-date" /></label>
+        <button id="save-note" type="button" disabled>파일 저장</button></div>
+    </header>
+    <div class="writer-grid">
+      <section><header><label for="source">Markdown</label>
+      </header>
+      <p id="image-hint">사진은 본문에 끌어놓으세요. 대표 사진은 상단 YAML을 닫는 <code>---</code> 다음, 본문 첫 문단에 한 장만 놓으세요.</p>
+      <textarea id="source" aria-describedby="image-hint" spellcheck="false" disabled></textarea></section>
+      <section><header><h2>미리보기</h2></header><iframe id="rendered" title="공부 기록 미리보기" sandbox=""></iframe></section>
+    </div>
+    <p id="write-status" role="status"></p>
+  </section>
+</Layout>
+<script>import './client.js';</script>

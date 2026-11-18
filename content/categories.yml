@@ -1,0 +1,25 @@
+categories:
+  web:
+    label: HTML · 웹
+    scope: HTML의 의미 구조와 접근성, 브라우저 동작, HTTP 요청·응답과 캐시 재사용 조건
+  css:
+    label: CSS
+    scope: 스타일 규칙과 레이아웃 계산, 화면 크기에 따른 배치 변화
+  javascript:
+    label: JavaScript
+    scope: 값과 함수, Promise, 이벤트 루프 등 JavaScript의 언어 동작과 실행 순서
+  typescript:
+    label: TypeScript
+    scope: 타입 추론과 좁히기, 제네릭, 타입으로 상태나 제약을 표현하는 방법
+  react:
+    label: React
+    scope: 컴포넌트의 상태와 렌더링, 훅의 생명주기, 프레임워크에서 React가 동작하는 방식
+  testing:
+    label: Testing
+    scope: 무엇을 검증할지, 어떤 조건과 단언으로 테스트를 설계하고 자동화할지 다룬 기록
+  tooling:
+    label: Tooling
+    scope: Git, 개발 환경, 빌드와 배포 도구의 설정 및 동작
+  performance:
+    label: Performance
+    scope: 성능 지표의 의미, 병목의 원인, 최적화가 시간이나 자원 사용에 미치는 영향
