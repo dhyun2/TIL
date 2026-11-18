@@ -1,0 +1,9 @@
+{
+  "name": "@til/reviewer",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@til/journal": "workspace:*",
+    "yaml": "2.9.1"
+  }
+}

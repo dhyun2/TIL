@@ -1,0 +1,42 @@
+---
+import Layout from '../components/Layout.astro';
+import StudyCalendar from '../components/StudyCalendar.astro';
+import LatestNote from '../components/LatestNote.astro';
+import NoteSummary from '../components/NoteSummary.astro';
+import Topics from '../components/Topics.astro';
+import { categories, months, notes } from '../lib/notes';
+import { repository } from '../lib/paths';
+---
+<Layout current="records">
+  <header class="page-heading"><h1>공부 기록</h1></header>
+  {notes[0] && <LatestNote note={notes[0]} />}
+  <StudyCalendar notes={notes} />
+  <section id="notes" class="archive" aria-labelledby="archive-title">
+    <div class="archive-toolbar">
+      <div class="archive-heading"><h2 id="archive-title">모든 기록</h2><span class="count" data-filter-status role="status">{notes.length}편</span></div>
+      {notes.length > 0 && <form class="filters" data-record-filters role="search" aria-label="공부 기록 검색">
+        <label class="search-field"><span class="sr-only">제목, 요약, 주제 검색</span><input type="search" name="q" placeholder="기록 검색" /></label>
+        <label class="category-field"><span class="sr-only">분야</span><select name="category">
+          <option value="">전체 분야</option>{categories.map(({ key, label }) => <option value={key}>{label}</option>)}
+        </select></label>
+      </form>}
+    </div>
+    {months.map(([month, entries]) => <section class="month" data-record-month aria-labelledby={'month-' + month}>
+      <div class="month-heading"><h3 id={'month-' + month}>{month.replace('-', '년 ')}월</h3>
+        <span class="count"><span data-month-count>{entries.length}</span>편</span>
+      </div>
+      <ul class="archive-list" role="list">{entries.map(note => <li data-record data-categories={note.areas.join(' ')} data-topics={note.tags.join(' ')}>
+        <a class="note-card" href={note.url}><NoteSummary note={note} />
+          <div class="card-footer"><Topics areas={note.areas} />
+            {note.level && <span class="note-level">난이도 · {note.level}</span>}
+          </div><span class="chevron" aria-hidden="true"></span></a>
+      </li>)}</ul>
+    </section>)}
+    {notes.length === 0 && <section class="empty" data-records-empty><div>
+      <h2>아직 공부 기록이 없어요</h2><p>GitHub에 Markdown 기록이 추가되면 여기에 표시돼요.</p>
+      <a href={repository + '/blob/main/docs/writing.md#오늘-기록-쓰기'}>기록 형식 보기 ↗</a>
+    </div></section>}
+    <div class="empty" data-filter-empty hidden><div><h2>조건에 맞는 기록이 없어요</h2><p>검색어를 바꾸거나 전체 분야에서 찾아보세요.</p></div></div>
+  </section>
+</Layout>
+<script>import '../scripts/records.js';</script>

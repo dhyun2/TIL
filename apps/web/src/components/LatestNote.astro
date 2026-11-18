@@ -1,0 +1,11 @@
+---
+const { note } = Astro.props;
+---
+<section class="latest" aria-labelledby="latest-title">
+  <div class="latest-copy">
+    <p class="latest-meta">최신 기록 · <time datetime={note.day}>{note.day.slice(5).replace('-', '.')}</time> {note.example && <span class="example-label">예시</span>}</p>
+    <h2 id="latest-title">{note.title}</h2><p class="latest-summary">{note.summary}</p>
+    <a class="latest-link" href={note.url}>기록 읽기 <span class="chevron" aria-hidden="true"></span></a>
+  </div>
+  {note.cover && <img class="latest-cover" src={note.cover.src} alt={note.cover.alt} width="960" height="640" />}
+</section>

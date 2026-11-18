@@ -1,0 +1,35 @@
+---
+import Layout from '../components/Layout.astro';
+import NoteSummary from '../components/NoteSummary.astro';
+import { areas, notes } from '../lib/notes';
+import { sitePath } from '../lib/paths';
+
+const rankedAreas = areas.toSorted((a, b) => b.notes.length - a.notes.length);
+const [initialArea] = rankedAreas;
+---
+<Layout title="학습 현황" current="growth">
+  <header class="page-heading"><h1>학습 현황</h1><p>{areas.filter(area => area.notes.length).length}개 분야에 기록 {notes.length}편</p></header>
+  <noscript><style is:inline>.category-browser { display: none; } .growth-grid { display: block; } .recent [data-preview-panel][hidden] { display: block !important; }</style></noscript>
+  <div class="growth-grid">
+    <section class="category-browser" aria-labelledby="areas-title">
+      <div class="section-heading"><h2 id="areas-title">분야별 기록</h2></div>
+      <ul class="category-list surface" data-category-list role="list">{rankedAreas.map(({ key, label, notes }) =>
+        <li class="category-row"><label class="category-choice">
+          <input class="sr-only" type="radio" name="preview-category" value={key} checked={key === initialArea?.key} aria-controls={'preview-' + key} />
+          <strong>{label}</strong><span class="count" aria-hidden="true">{notes.length > 100 ? '100+' : notes.length}</span>
+          <span class="sr-only">기록 {notes.length}편</span>
+        </label></li>)}</ul>
+    </section>
+    <section class="recent" id="recent-preview" aria-labelledby="recent-title">
+      <div class="section-heading"><h2 id="recent-title">최근 기록</h2></div>
+      {rankedAreas.map(({ key, label, notes }) => <div class="preview surface" id={'preview-' + key} data-preview-panel={key} hidden={key !== initialArea?.key}>
+        <div class="panel-heading"><h3>{label}</h3>{notes.length > 0 &&
+          <a class="preview-all" aria-label={label + ' 기록 전체 보기'} href={sitePath() + '?category=' + key + '#notes'}>전체 보기<span class="chevron" aria-hidden="true"></span></a>}</div>
+        {notes.length ? <ul class="note-list" role="list">{notes.slice(0, 4).map(note =>
+          <li><div class="note-row"><NoteSummary note={note} /></div></li>)}</ul> :
+          <p class="panel-empty">이 분야의 기록이 아직 없어요.</p>}
+      </div>)}
+    </section>
+  </div>
+</Layout>
+<script>import '../scripts/growth.js';</script>

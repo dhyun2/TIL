@@ -1,0 +1,40 @@
+name: Gemini 학습 대화
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+jobs:
+  reply:
+    if: >-
+      github.event.issue.pull_request &&
+      github.event.issue.state == 'open' &&
+      github.event.comment.user.id == github.event.repository.owner.id &&
+      (startsWith(github.event.comment.body, '/답변') || startsWith(github.event.comment.body, '/마무리'))
+    concurrency:
+      group: study-chat-${{ github.event.issue.number }}
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: 마무리 신호 또는 학습 답변 처리
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: node apps/reviewer/reply.js

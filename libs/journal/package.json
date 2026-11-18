@@ -1,0 +1,14 @@
+{
+  "name": "@til/journal",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./notes": "./read-note.js",
+    "./review": "./review.js",
+    "./review-file": "./review-file.js",
+    "./draft": "./draft.js"
+  },
+  "dependencies": {
+    "yaml": "2.9.1"
+  }
+}

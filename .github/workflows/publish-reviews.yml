@@ -1,0 +1,52 @@
+name: 학습 리뷰 게시
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [closed]
+    paths: ['content/posts/*/title.md']
+
+permissions:
+  contents: write
+  pull-requests: read
+  issues: read
+  actions: write
+
+jobs:
+  publish:
+    if: github.event.pull_request.merged
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: 병합된 글의 리뷰 저장
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for attempt in 1 2 3; do
+            git fetch --quiet origin refs/heads/main
+            git switch --detach FETCH_HEAD
+            node apps/reviewer/publish.js
+            if [ -d content/posts ]; then git add -A -- content/posts; fi
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m "docs: '아티클메이트 학습 리뷰 반영'"
+            if git push origin HEAD:refs/heads/main; then exit 0; fi
+          done
+          exit 1
+      - name: GitHub Pages 갱신
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --ref main

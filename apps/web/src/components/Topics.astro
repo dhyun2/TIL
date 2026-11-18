@@ -1,0 +1,5 @@
+---
+import { categories } from '../lib/notes';
+const labels = Astro.props.areas.map(key => categories.find(area => area.key === key)?.label).filter(Boolean);
+---
+{labels.length > 0 && <ul class="topics" aria-label="학습 분야">{labels.map(label => <li>{label}</li>)}</ul>}

@@ -1,0 +1,17 @@
+---
+import { reviewerName } from '@til/journal/review';
+const { note } = Astro.props;
+const turns = note.review_thread ?? [];
+---
+{(note.report || turns.length > 0) && <section class="learning-review" aria-labelledby="ai-학습-리뷰">
+  <h2 id="ai-학습-리뷰">{reviewerName} 학습 리뷰</h2>
+  {note.report && <div class="review-report"><h3>첫 리포트</h3>
+    <div class="prose" set:html={note.report} />
+  </div>}
+  {turns.length > 0 && <div class="review-followup">
+    <h3>이어진 대화 {note.example && <span class="example-label">예시</span>}</h3>
+    <ol class="review-thread" role="list">{turns.map(turn => <li class={'review-turn review-turn--' + turn.role}>
+      <span class="review-speaker">{turn.role === 'user' ? '나' : reviewerName}</span><p data-inline-code>{turn.text}</p>
+    </li>)}</ol>
+  </div>}
+</section>}

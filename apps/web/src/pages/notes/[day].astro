@@ -1,0 +1,27 @@
+---
+import Layout from '../../components/Layout.astro';
+import Topics from '../../components/Topics.astro';
+import LearningReview from '../../components/LearningReview.astro';
+import { notes } from '../../lib/notes';
+import { sitePath } from '../../lib/paths';
+
+export function getStaticPaths() {
+  return notes.map(note => ({ params: { day: note.day }, props: { note } }));
+}
+const { note } = Astro.props;
+const [year, month, day] = note.day.split('-');
+---
+<Layout title={note.title} description={note.summary}>
+  <article class="note-page">
+    <a class="back" href={sitePath() + '#notes'}>← 기록 목록</a>
+    <header class="note-header">
+      <time datetime={note.day}>{year}년 {month}월 {day}일</time>
+      {note.example && <span class="example-label">예시 학습 기록</span>}
+      <h1>{note.title}</h1><p>{note.summary}</p><Topics areas={note.areas} />
+      {note.level && <span class="note-level">난이도 · {note.level}</span>}
+    </header>
+    <details class="note-outline" hidden><summary>이 글의 목차</summary><nav aria-label="이 글의 목차"><ul></ul></nav></details>
+    <div class="note-content"><div class="note-body prose" set:html={note.body} /><LearningReview note={note} /></div>
+  </article>
+</Layout>
+<script>import '../../scripts/note.js';</script>

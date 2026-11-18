@@ -1,0 +1,63 @@
+---
+const { notes } = Astro.props;
+const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date());
+const end = new Date(today + 'T00:00:00Z');
+const start = new Date(end);
+start.setUTCDate(end.getUTCDate() - end.getUTCDay() - 51 * 7);
+const byDay = new Map(notes.map(note => [note.day, note]));
+const weeks = Array.from({ length: 52 }, (_, week) =>
+  Array.from({ length: 7 }, (_, weekday) => {
+    const date = new Date(start);
+    date.setUTCDate(start.getUTCDate() + week * 7 + weekday);
+    const day = date.toISOString().slice(0, 10);
+    return { day, date, note: byDay.get(day), future: day > today };
+  })
+);
+const count = weeks.flat().filter(cell => !cell.future && cell.note).length;
+---
+<section class="calendar" aria-labelledby="calendar-title">
+  <header>
+    <h2 id="calendar-title">학습 잔디</h2>
+    <p>최근 52주 <span>·</span> <strong>{count}일</strong> 기록</p>
+  </header>
+  <div class="plot" aria-label={'학습 기록 달력, ' + today + ' 기준'}>
+    <div class="axes" aria-hidden="true"><i></i>{['', '월', '', '수', '', '금', ''].map(label => <small>{label}</small>)}</div>
+    {weeks.map(week => {
+      const monthStart = week.find(cell => cell.date.getUTCDate() === 1 && !cell.future);
+      return <div class="week">
+        <small class="month-label">{monthStart && (monthStart.date.getUTCMonth() + 1) + '월'}</small>
+        {week.map(({ day, note, future }) => note && !future
+          ? <a class="day marked" href={note.url} title={day + ' · ' + note.title} aria-label={day + ' · ' + note.title}></a>
+          : <span class:list={['day', { future, today: day === today }]} aria-hidden="true" title={future ? undefined : day}></span>)}
+      </div>;
+    })}
+  </div>
+  <footer><span class="mobile-range">최근 16주 표시</span><span><b></b>기록 없음</span><span><b class="ink"></b>기록한 날</span></footer>
+</section>
+<style>
+  .calendar { margin-top: 24px; padding: clamp(17px, 2.8vw, 30px); background: var(--surface); border: 1px solid var(--rule); border-radius: var(--panel-radius); }
+  header, footer, footer span { display: flex; align-items: center; }
+  header { justify-content: space-between; flex-wrap: wrap; gap: 4px 1rem; }
+  h2 { font-size: 1.18rem; letter-spacing: -.045em; margin: 0; }
+  p, footer, small { color: var(--subtle); font-size: .75rem; margin: 0; }
+  p span { margin-inline: 2px; }
+  strong { color: var(--ink); }
+  .plot { --gap: clamp(2px,.28vw,4px); display: grid; grid-template-columns: 1rem repeat(52,minmax(0,1fr)); gap: var(--gap); margin-top: 18px; }
+  .axes, .week { display: grid; grid-template-rows: 1.25rem repeat(7,1fr); gap: var(--gap); }
+  small { font-size: .65rem; white-space: nowrap; line-height: 1; }
+  .axes small { align-self: center; }
+  .day { display: block; aspect-ratio: 1; background: #eceef5; border-radius: 25%; }
+  .day.today { box-shadow: inset 0 0 0 1px #8695b9; }
+  .future { visibility: hidden; }
+  .marked, .ink { background: #5268ac; }
+  .marked:hover, .marked:focus-visible { background: #2f407b; outline: 2px solid #2f407b; outline-offset: 1px; }
+  footer { justify-content: flex-end; gap: 14px; margin-top: 13px; }
+  footer span { gap: 5px; font-size: .7rem; }
+  b { width: .65rem; height: .65rem; background: #eceef5; border-radius: 3px; }
+  .mobile-range { display: none; }
+  @media (max-width: 640px) {
+    .plot { grid-template-columns: 1rem repeat(16,minmax(0,1fr)); gap: 4px; }
+    .week:nth-last-child(n+17) { display: none; }
+    .mobile-range { display: inline; margin-right: auto; }
+  }
+</style>
