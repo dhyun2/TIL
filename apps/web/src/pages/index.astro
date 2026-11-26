@@ -25,7 +25,7 @@ import { repository } from '../lib/paths';
       <div class="month-heading"><h3 id={'month-' + month}>{month.replace('-', '년 ')}월</h3>
         <span class="count"><span data-month-count>{entries.length}</span>편</span>
       </div>
-      <ul class="archive-list" role="list">{entries.map(note => <li data-record data-categories={note.areas.join(' ')} data-topics={note.tags.join(' ')}>
+      <ul class="archive-list" role="list">{entries.map((note, index) => <li id={entries[index - 1]?.day !== note.day ? 'day-' + note.day : undefined} data-record data-categories={note.areas.join(' ')} data-topics={note.tags.join(' ')}>
         <a class="note-card" href={note.url}><NoteSummary note={note} />
           <div class="card-footer"><Topics areas={note.areas} />
             {note.level && <span class="note-level">난이도 · {note.level}</span>}

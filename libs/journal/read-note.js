@@ -1,8 +1,8 @@
 import { readFileSync, statSync } from 'node:fs';
 import { parse } from 'yaml';
+import { postIdOf } from './post-folders.js';
 
 export const categories = parse(readFileSync(new URL('../../content/categories.yml', import.meta.url), 'utf8')).categories;
-export const dayOf = path => /^content\/posts\/(\d{4}-\d{2}-\d{2})\/title\.md$/.exec(path)?.[1];
 export function validDay(day) {
   const date = new Date(day + 'T00:00:00Z');
   return /^\d{4}-\d{2}-\d{2}$/.test(day) && Number.isFinite(+date) && date.toISOString().startsWith(day);
@@ -55,7 +55,7 @@ function authorText(body) {
   return body.trim();
 }
 
-function coverIssue(body, assetExists, day) {
+function coverIssue(body, assetExists, postId) {
   const [first] = body.split(/\n[ \t]*\n/, 1);
   if (!first.startsWith('![')) return;
   const match = first.match(/^!\[([^\n]*)\]\((.+)\)$/);
@@ -65,14 +65,15 @@ function coverIssue(body, assetExists, day) {
   const invalid = '표지 경로는 ./assets/ 아래 파일 또는 HTTPS 주소로 작성하세요.';
   if (!url.startsWith('./assets/')) return invalid;
   let path;
-  try { path = 'content/posts/' + day + '/' + decodeURIComponent(url.slice(2)); } catch { return invalid; }
+  try { path = 'content/posts/' + postId + '/' + decodeURIComponent(url.slice(2)); } catch { return invalid; }
   if (path.includes('\0') || path.includes('\\') || path.split('/').some(part => part === '..' || part === '.')) return invalid;
   if (assetExists && !assetExists(path)) return '표지 파일을 찾을 수 없습니다: ' + path;
 }
 
 // Keep the original header and body so publishing a review preserves the author's formatting.
 export function readNote(path, markdown, assetExists) {
-  if (!validDay(dayOf(path))) throw Error('파일명은 실제 날짜의 content/posts/YYYY-MM-DD/title.md 형식이어야 합니다.');
+  const postId = postIdOf(path);
+  if (!postId || !validDay(postId.split('/')[0])) throw Error('파일명은 실제 날짜의 content/posts/YYYY-MM-DD/01/title.md 형식이어야 합니다.');
   const parts = markdown.replaceAll('\r\n', '\n').match(/^(---[ \t]*\n)([\s\S]*?)^(---[ \t]*(?:\n|$))([\s\S]*)/m);
   if (!parts || parts.index !== 0) throw Error('파일 맨 위 YAML을 --- 두 줄로 감싸세요.');
   const [, opening, header, closing, body] = parts;
@@ -80,7 +81,7 @@ export function readNote(path, markdown, assetExists) {
   if (!meta || typeof meta !== 'object' || Array.isArray(meta)) throw Error('상단 YAML에 title, summary를 작성하세요.');
   const errors = validateHeader(meta);
   const author = authorText(body);
-  const cover = coverIssue(author, assetExists, dayOf(path));
+  const cover = coverIssue(author, assetExists, postId);
   if (cover) errors.push(cover);
   const visible = author.replace(/<!--[\s\S]*?-->/g, '').split('\n').filter(line =>
     !/^\s*!\[[^\]]*\]\([^\n]*\)\s*$/.test(line) && !/^ {0,3}(?:#{1,6}(?:\s|$)|`{3,}|~{3,})/.test(line));

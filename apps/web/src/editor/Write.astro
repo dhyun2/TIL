@@ -7,6 +7,7 @@ import './editor.css';
   <section class="writer" data-api={sitePath('write/api/')}>
     <header class="writer-heading"><h1>공부 기록 쓰기</h1>
       <div class="writer-actions"><label>기록 날짜 <input type="date" id="write-date" /></label>
+        <label>기록 선택 <select id="write-post" disabled></select></label>
         <button id="save-note" type="button" disabled>파일 저장</button></div>
     </header>
     <div class="writer-grid">

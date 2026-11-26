@@ -1,8 +1,9 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync, rmSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { isPostNumber, postNumbers, reservePost } from '@til/journal/post-folders';
 import { draft } from '@til/journal/draft';
 import { readNote, fileExists, validDay } from '@til/journal/notes';
 import { parseFrontmatter } from '@astrojs/markdown-remark';
@@ -29,9 +30,31 @@ export async function POST({ request, url, clientAddress }) {
   }
   const day = url.searchParams.get('day') || '';
   if (!validDay(day)) return fail('날짜를 확인해 주세요.');
-  const relativePath = 'content/posts/' + day + '/title.md';
-  const path = resolve(repoRoot, relativePath);
+  const dayFolder = resolve(repoRoot, 'content/posts', day);
   const action = url.searchParams.get('action');
+  if (action === 'list') {
+    const numbers = postNumbers(dayFolder).reverse();
+    if (fileExists(resolve(dayFolder, 'title.md'))) numbers.push('');
+    const posts = numbers.map(number => {
+      const file = resolve(dayFolder, number, 'title.md');
+      let title;
+      if (fileExists(file)) {
+        try { title = parseFrontmatter(readFileSync(file, 'utf8')).frontmatter.title; }
+        catch { /* A draft with incomplete YAML can still be opened for editing. */ }
+      }
+      return { number, title: title || '작성 중' };
+    });
+    return Response.json({ posts });
+  }
+  if (action === 'reserve') return Response.json({ number: reservePost(dayFolder) });
+
+  const number = url.searchParams.get('number') || '';
+  if (number === 'new' && action === 'load') return Response.json({ source: draft(), revision: null });
+  if (number && !isPostNumber(number) && !(number === 'new' && action === 'preview')) return fail('글 번호를 확인해 주세요.');
+  const postId = number ? day + '/' + number : day;
+  const relativePath = 'content/posts/' + postId + '/title.md';
+  const path = resolve(repoRoot, relativePath);
+  const folder = dirname(path);
 
   if (action === 'upload') {
     const max = 10 * 1024 * 1024;
@@ -40,7 +63,7 @@ export async function POST({ request, url, clientAddress }) {
     if (bytes.length > max) return fail('이미지는 10MB까지 올릴 수 있어요.', 413);
     const ext = extension(bytes);
     if (!ext) return fail('PNG, JPEG, WebP, GIF 파일을 선택해 주세요.');
-    const dir = resolve(repoRoot, 'content/posts', day, 'assets');
+    const dir = resolve(folder, 'assets');
     mkdirSync(dir, { recursive: true });
     const name = hash(bytes).slice(0, 24) + '.' + ext;
     const image = resolve(dir, name);
@@ -57,7 +80,7 @@ export async function POST({ request, url, clientAddress }) {
   if (action === 'preview') {
     try {
       const { frontmatter, content } = parseFrontmatter(source);
-      const { code } = await processor.render(content, { frontmatter: { day } });
+      const { code } = await processor.render(content, { frontmatter: { postId } });
       return Response.json({ title: frontmatter.title, summary: frontmatter.summary, level: frontmatter.level,
         html: code });
     } catch {
@@ -65,20 +88,21 @@ export async function POST({ request, url, clientAddress }) {
     }
   }
   if (action !== 'save') return fail('알 수 없는 요청입니다.');
+  let note;
   try {
-    readNote(relativePath, source, asset => fileExists(resolve(repoRoot, asset)));
+    note = readNote(relativePath, source, asset => fileExists(resolve(repoRoot, asset)));
   } catch (error) {
     return fail(error.message);
   }
   const savedRevision = existsSync(path) ? hash(readFileSync(path)) : null;
   if (revision !== savedRevision) return fail('파일이 다른 곳에서 변경됐어요. 작성 내용을 복사한 뒤 다시 열어 주세요.', 409);
-  mkdirSync(resolve(repoRoot, 'content/posts', day), { recursive: true });
-  const temporary = resolve(repoRoot, 'content/posts', day, '.' + randomUUID() + '.tmp');
+  mkdirSync(folder, { recursive: true });
+  const temporary = resolve(folder, '.' + randomUUID() + '.tmp');
   try {
     writeFileSync(temporary, source, { flag: 'wx' });
     renameSync(temporary, path);
   } finally {
     rmSync(temporary, { force: true });
   }
-  return Response.json({ path: relativePath, revision: hash(source) });
+  return Response.json({ path: relativePath, title: note.meta.title, revision: hash(source) });
 }

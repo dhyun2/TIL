@@ -6,6 +6,7 @@ on:
     paths:
       - 'content/**'
       - 'apps/web/**'
+      - 'apps/reviewer/**'
       - 'libs/**'
       - 'package.json'
       - 'pnpm-*.yaml'
@@ -17,20 +18,47 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: false
+  queue: max
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+      issues: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: main
+          fetch-depth: 0
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm lint:notes
+      - name: 리뷰와 목차를 반영한 스냅샷 준비
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for attempt in 1 2 3; do
+            git fetch --quiet origin refs/heads/main
+            git switch --detach FETCH_HEAD
+            node apps/reviewer/publish.js
+            pnpm index:notes
+            pnpm lint:notes
+            git add -- README.md
+            if [ -d content/posts ]; then git add -- content/posts; fi
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m "docs: '학습 리뷰와 공부 기록 목차 반영'"
+            if git push origin HEAD:refs/heads/main; then exit 0; fi
+          done
+          exit 1
       - run: pnpm build
       - uses: actions/upload-pages-artifact@v3
         with:

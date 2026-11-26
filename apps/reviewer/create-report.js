@@ -1,4 +1,5 @@
-import { dayOf, fileExists, readNote } from '@til/journal/notes';
+import { postIdOf } from '@til/journal/post-folders';
+import { fileExists, readNote } from '@til/journal/notes';
 import { pullRequest, readEvent, topics } from './github.js';
 import { reviewNote, signature } from './gemini.js';
 import { conversation } from './conversation.js';
@@ -26,7 +27,7 @@ export async function createReport(event, pr = pullRequest(event.pull_request.nu
   if (live.head.sha !== head.sha) return;
   const files = pr.files();
   if (files.length !== live.changed_files) throw Error('PR 파일 목록을 완전히 읽지 못했어요.');
-  const notes = files.filter(f => f.status !== 'removed' && dayOf(f.filename));
+  const notes = files.filter(f => f.status !== 'removed' && postIdOf(f.filename));
   const readChat = () => conversation(pr.comments(), event.repository.owner.id, []);
   const chat = readChat();
   if (chat.finish) return;

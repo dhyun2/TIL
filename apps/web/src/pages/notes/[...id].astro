@@ -6,7 +6,7 @@ import { notes } from '../../lib/notes';
 import { sitePath } from '../../lib/paths';
 
 export function getStaticPaths() {
-  return notes.map(note => ({ params: { day: note.day }, props: { note } }));
+  return notes.map(note => ({ params: { id: note.id }, props: { note } }));
 }
 const { note } = Astro.props;
 const [year, month, day] = note.day.split('-');

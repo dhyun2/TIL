@@ -1,19 +1,20 @@
 ---
+import { sitePath } from '../lib/paths';
 const { notes } = Astro.props;
 const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Seoul' }).format(new Date());
 const end = new Date(today + 'T00:00:00Z');
 const start = new Date(end);
 start.setUTCDate(end.getUTCDate() - end.getUTCDay() - 51 * 7);
-const byDay = new Map(notes.map(note => [note.day, note]));
+const byDay = Object.groupBy(notes, note => note.day);
 const weeks = Array.from({ length: 52 }, (_, week) =>
   Array.from({ length: 7 }, (_, weekday) => {
     const date = new Date(start);
     date.setUTCDate(start.getUTCDate() + week * 7 + weekday);
     const day = date.toISOString().slice(0, 10);
-    return { day, date, note: byDay.get(day), future: day > today };
+    return { day, date, entries: byDay[day], future: day > today };
   })
 );
-const count = weeks.flat().filter(cell => !cell.future && cell.note).length;
+const count = weeks.flat().filter(cell => !cell.future && cell.entries).length;
 ---
 <section class="calendar" aria-labelledby="calendar-title">
   <header>
@@ -26,8 +27,8 @@ const count = weeks.flat().filter(cell => !cell.future && cell.note).length;
       const monthStart = week.find(cell => cell.date.getUTCDate() === 1 && !cell.future);
       return <div class="week">
         <small class="month-label">{monthStart && (monthStart.date.getUTCMonth() + 1) + '월'}</small>
-        {week.map(({ day, note, future }) => note && !future
-          ? <a class="day marked" href={note.url} title={day + ' · ' + note.title} aria-label={day + ' · ' + note.title}></a>
+        {week.map(({ day, entries, future }) => entries && !future
+          ? <a class="day marked" href={entries.length === 1 ? entries[0].url : sitePath() + '#day-' + day} title={day + ' · ' + (entries.length === 1 ? entries[0].title : entries.length + '편')} aria-label={day + ' · ' + (entries.length === 1 ? entries[0].title : entries.length + '편')}></a>
           : <span class:list={['day', { future, today: day === today }]} aria-hidden="true" title={future ? undefined : day}></span>)}
       </div>;
     })}

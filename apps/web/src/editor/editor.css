@@ -1,7 +1,7 @@
 .writer { margin: 2rem auto; }
 .writer-heading, .writer-actions, .writer-grid section > header { display: flex; align-items: center; justify-content: space-between; gap: .8rem; flex-wrap: wrap; }
 .writer-heading h1 { font-size: clamp(1.75rem, 4vw, 3rem); letter-spacing: -.06em; }
-.writer button, .writer input[type=date] { border: 1px solid #d6d9e5; border-radius: .65rem; padding: .55rem .85rem; background: white; color: inherit; font: inherit; }
+.writer button, .writer input[type=date], .writer select { border: 1px solid #d6d9e5; border-radius: .65rem; padding: .55rem .85rem; background: white; color: inherit; font: inherit; }
 .writer button { cursor: pointer; }
 .writer #save-note { background: #263252; color: white; }
 .writer button:disabled { opacity: .55; cursor: default; }
@@ -16,3 +16,5 @@
 @media (max-width: 48rem) { .writer-grid { grid-template-columns: 1fr; } .writer textarea, .writer iframe { height: 45vh; } }
 
 #image-hint { margin: .65rem 1rem; font-size: .875rem; color: #515970; }
+
+.writer select { max-width: min(18rem, 70vw); }

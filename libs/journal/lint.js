@@ -3,7 +3,7 @@ import { readReview } from './review-file.js';
 import { fileExists, readNote } from './read-note.js';
 
 const requested = process.argv.slice(2);
-const paths = requested.length ? requested : globSync('content/posts/**/*').filter(path => !lstatSync(path).isDirectory() && !/^content\/posts\/[^/]+\/assets\//.test(path));
+const paths = requested.length ? requested : globSync('content/posts/**/*').filter(path => !lstatSync(path).isDirectory() && !/^content\/posts\/[^/]+\/(?:[^/]+\/)?assets\//.test(path));
 for (const path of paths) {
   try {
     if (!lstatSync(path).isFile()) throw Error('일반 파일을 지정하세요.');

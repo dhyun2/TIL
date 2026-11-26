@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./post-folders": "./post-folders.js",
     "./notes": "./read-note.js",
     "./review": "./review.js",
     "./review-file": "./review-file.js",

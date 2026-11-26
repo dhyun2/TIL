@@ -6,10 +6,10 @@ function noteMarkdown() {
     const first = tree.children[0];
     const image = first?.type === 'paragraph' && first.children.length === 1 && first.children[0];
     if (image?.type === 'image') {
-      file.data.astro.frontmatter.cover = { src: imageUrl(image.url, file.data.astro.frontmatter.day), alt: image.alt || '' };
+      file.data.astro.frontmatter.cover = { src: imageUrl(image.url, file.data.astro.frontmatter.postId), alt: image.alt || '' };
     }
     function resolveImages(node) {
-      if (node.type === 'image' || node.type === 'definition') node.url = imageUrl(node.url, file.data.astro.frontmatter.day);
+      if (node.type === 'image' || node.type === 'definition') node.url = imageUrl(node.url, file.data.astro.frontmatter.postId);
       node.children?.forEach(resolveImages);
     }
     resolveImages(tree);

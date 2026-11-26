@@ -2,13 +2,13 @@
 
 ## 새 글 만들기
 
-`pnpm new "브라우저 캐시 이해하기"`를 실행하면 한국 시간 기준 오늘의 폴더에 제목이 채워진 `title.md`와 `assets/`가 생긴다. `pnpm new`만 입력하면 제목을 물어본다. 오늘 글이 이미 있으면 해당 경로를 안내한다. 요약과 본문을 채운 뒤 `pnpm lint:notes`로 확인한다.
+`pnpm new "브라우저 캐시 이해하기"`를 실행하면 한국 시간 기준 오늘 날짜 아래 다음 번호 폴더에 제목이 채워진 `title.md`와 `assets/`가 생긴다. `pnpm new`만 입력하면 제목을 물어본다. 같은 날 두 번 실행하면 각각 `01/title.md`와 `02/title.md`가 생긴다. 제목이 같아도 별개의 글이다. 요약과 본문을 채운 뒤 `pnpm lint:notes`로 확인한다.
 
 ## 로컬 편집기로 쓰기
 
-Node.js 24에서 처음 한 번 `pnpm install --frozen-lockfile`를 실행한 뒤 `pnpm dev`로 사이트를 연다. 상단 **글쓰기** 메뉴에서 날짜를 선택하면 그날의 파일이나 새 양식이 열린다. 왼쪽에서 제목·요약·Markdown 본문을 쓰면 오른쪽에서 미리 볼 수 있다.
+Node.js 24에서 처음 한 번 `pnpm install --frozen-lockfile`를 실행한 뒤 `pnpm dev`로 사이트를 연다. 상단 **글쓰기** 메뉴에서 날짜를 선택한 뒤 **기록 선택**에서 기존 글의 번호와 제목을 고르거나 **새 글 쓰기**를 고른다. 왼쪽에서 제목·요약·Markdown 본문을 쓰면 오른쪽에서 미리 볼 수 있다.
 
-사진을 왼쪽 Markdown에 끌어놓으면 `content/posts/YYYY-MM-DD/assets/`에 복사하고 마우스를 놓은 위치에 이미지를 삽입한다. 대표 사진은 상단 YAML을 닫는 `---` 다음 첫 문단에 한 장만 놓는다. 본문 중간에 놓은 사진은 해당 위치에 표시된다. 대괄호 안의 사진 설명은 자유롭게 바꿀 수 있다. **파일 저장**을 누르면 규격을 검사하고 `content/posts/YYYY-MM-DD/title.md`에 저장한다. 이후 글과 이미지를 함께 커밋한다.
+사진을 왼쪽 Markdown에 끌어놓으면 `content/posts/YYYY-MM-DD/NN/assets/`에 복사하고 마우스를 놓은 위치에 이미지를 삽입한다. 대표 사진은 상단 YAML을 닫는 `---` 다음 첫 문단에 한 장만 놓는다. 본문 중간에 놓은 사진은 해당 위치에 표시된다. 대괄호 안의 사진 설명은 자유롭게 바꿀 수 있다. **파일 저장**을 누르면 규격을 검사하고 `content/posts/YYYY-MM-DD/NN/title.md`에 저장한다. 이후 글과 이미지를 함께 커밋한다.
 
 ### 저장한 글로 리뷰 받기
 
@@ -16,7 +16,7 @@ Node.js 24에서 처음 한 번 `pnpm install --frozen-lockfile`를 실행한 �
 2. 해당 날짜의 글과 첨부 이미지만 커밋해 브랜치를 푸시한다. GitHub에서 대상 브랜치를 `main`으로 선택해 PR을 연다.
 3. 아티클메이트의 첫 리뷰가 달리면 PR **Conversation** 탭에서 새 댓글로 `/답변 내용`을 쓴다. 답변을 받은 뒤 같은 방법으로 대화를 이어 간다.
 4. 남기고 싶은 마지막 응답까지 받은 뒤 새 댓글에 `/마무리` 한 줄을 쓴다. 종료 확인 댓글을 보고 직접 병합한다.
-5. 병합 후 **학습 리뷰 게시** 작업이 리뷰와 대화를 저장해 `main`에 커밋하고 Pages 배포를 요청한다.
+5. 병합 후 **공부 일지 Pages 배포** 작업이 리뷰·대화·README 목차를 한 커밋에 저장하고 그 상태를 배포한다.
 
 ### 커밋 제목
 
@@ -30,7 +30,7 @@ Node.js 24에서 처음 한 번 `pnpm install --frozen-lockfile`를 실행한 �
 
 ## 오늘 기록 쓰기
 
-1. [템플릿](daily.md)을 `content/posts/YYYY-MM-DD/title.md`로 복사한다. 날짜는 한국 시간 기준이며 같은 날의 공부는 한 파일에 이어 쓴다.
+1. [템플릿](daily.md)을 `content/posts/YYYY-MM-DD/NN/title.md`로 복사한다. 날짜는 한국 시간 기준이며 `NN`은 그날의 글 번호다. 첫 글은 `01`로 시작하며 다음 글마다 번호를 올린다. 기존에 날짜 바로 아래에 둔 `title.md`도 계속 읽을 수 있다.
 2. 템플릿의 제목, 한 줄 요약, 본문은 작성 예시다. 실제 공부한 내용으로 바꿔 쓴다. 무엇을 공부했고 어떻게 생각했는지 적는다. 직접 비교해 본 코드나 관찰 결과가 있으면 함께 남긴다.
 3. `pnpm lint:notes`로 확인하고 글을 PR에 올린다. Gemini가 분야·주제 라벨과 리뷰 댓글을 달고, 병합 후 리뷰가 사이트에도 반영된다.
 
@@ -47,7 +47,7 @@ If-None-Match가 들어갔고 응답은 304였다. 요청은 발생했지만 본
 
 ### 글에 사진 넣기
 
-사진은 글과 같은 폴더의 `assets/`에 둔다. 예를 들어 `content/posts/2026-11-18/assets/cache-flow.webp`를 저장한 뒤, 같은 날 글의 YAML을 닫는 `---` 바로 아래 첫 문단에 적는다.
+사진은 글과 같은 폴더의 `assets/`에 둔다. 예를 들어 `content/posts/2026-11-18/01/assets/cache-flow.webp`를 저장한 뒤, 같은 날 글의 YAML을 닫는 `---` 바로 아래 첫 문단에 적는다.
 
 ```markdown
 ![캐시 재검증 흐름도](./assets/cache-flow.webp)
@@ -79,7 +79,7 @@ Mermaid와 수식은 별도의 렌더러를 사용하지 않는다.
 
 | 항목 | 검사 기준 |
 | --- | --- |
-| 경로 | `content/posts/YYYY-MM-DD/title.md` 형식과 실제 달력 날짜 |
+| 경로 | `content/posts/YYYY-MM-DD/NN/title.md` 형식과 실제 달력 날짜 |
 | 난이도 | `level`은 선택 항목이다. 개념 입문은 `기초`, 일반적인 적용은 `표준`, 심화 분석은 `전문`으로 적는다. 생략하면 난이도 표시를 숨긴다. |
 | 상단 YAML | `---`로 여닫고 `title`, `summary`에 비어 있지 않은 문자열 작성 |
 | 본문 | 제목·표지·안내 주석 외에 공부한 내용이 한 줄 이상 필요 |
@@ -90,7 +90,7 @@ Mermaid와 수식은 별도의 렌더러를 사용하지 않는다.
 
 ```sh
 pnpm lint:notes
-pnpm lint:notes content/posts/2026-11-18/title.md
+pnpm lint:notes content/posts/2026-11-18/01/title.md
 ```
 
 ## PR 자동 리뷰
@@ -112,7 +112,7 @@ pnpm lint:notes content/posts/2026-11-18/title.md
 | 댓글 예시 | 결과 |
 | --- | --- |
 | `/답변 304여도 재검증 요청은 보내고 응답 본문을 재사용해요.` | 글이 한 편이면 바로 연결한다. Gemini가 글, 첫 리뷰, 이 글에서 앞서 나눈 대화를 읽고 새 댓글로 답한다. 같은 방식으로 계속 대화할 수 있다. |
-| `/답변 2026-11-18 응답이 아직 신선하면 어떻게 되나요?` | 여러 편을 함께 올린 PR에서 해당 날짜의 글에만 연결한다. |
+| `/답변 2026-11-18/01 응답이 아직 신선하면 어떻게 되나요?` | 여러 편을 함께 올린 PR에서 날짜와 번호가 일치하는 글에 연결한다. |
 | `/마무리` | 이 한 줄로 PR 전체의 학습 대화를 끝낸다. 종료 확인 댓글이 달리고 추가 학습 답변은 멈춘다. |
 
 **직접 병합하면** Actions가 마무리 전까지 작성한 답변과 실제로 달린 Gemini 답변을 같은 폴더에 있는 `review.md`의 `review_thread`에 순서대로 이어 쓴다. 첫 리뷰는 `review.md` 본문에 보관한다. 공부 기록 사이트의 **이어진 대화**에도 같은 내용이 표시된다.
@@ -148,7 +148,7 @@ flowchart TD
 | GitHub에서 일어난 일 | 실행되는 JavaScript |
 | --- | --- |
 | PR에 글을 올리거나 수정함 | [create-report.js](../apps/reviewer/create-report.js)에서 글을 검사하고 첫 리뷰와 라벨을 갱신한다. |
-| 작성자가 `/답변`, `/마무리` 댓글을 남김 | [reply.js](../apps/reviewer/reply.js)에서 날짜별 대화에 답하거나 종료를 확인한다. |
+| 작성자가 `/답변`, `/마무리` 댓글을 남김 | [reply.js](../apps/reviewer/reply.js)에서 글별 대화에 답하거나 종료를 확인한다. |
 | PR을 병합함 | [publish.js](../apps/reviewer/publish.js)에서 리뷰 결과와 마무리된 대화를 저장한다. |
 
 리뷰 기준은 [study-review.md](study-review.md), 분야 이름은 [categories.yml](../content/categories.yml)에서 수정한다. 모델을 변경하려면 저장소 Actions 변수 `GEMINI_MODEL`에 사용할 모델 ID를 설정한다.

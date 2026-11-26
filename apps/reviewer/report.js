@@ -29,6 +29,6 @@ export function formatReport(entries) {
   });
   const snapshot = Object.fromEntries(entries.map(({ file, result }) => [file.sha, result]));
   const encoded = Buffer.from(JSON.stringify(snapshot)).toString('base64');
-  const help = '저장소 소유자는 이 PR의 Conversation에 `/답변 내용`으로 대화를 이어갈 수 있어요. 글이 여러 편이면 `/답변 YYYY-MM-DD 내용`을 쓰세요. `/마무리` 후 병합하면 대화가 해당 글에 저장돼요.';
+  const help = '저장소 소유자는 이 PR의 Conversation에 `/답변 내용`으로 대화를 이어갈 수 있어요. 글이 여러 편이면 글 경로를 붙여 `/답변 YYYY-MM-DD/01 내용`처럼 쓰세요. `/마무리` 후 병합하면 대화가 해당 글에 저장돼요.';
   return [marker, '## ' + reviewerName + ' 학습 리뷰', ...sections, help, '<!-- til:results ' + encoded + ' -->'].join('\n\n');
 }

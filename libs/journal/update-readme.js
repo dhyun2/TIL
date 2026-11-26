@@ -1,11 +1,15 @@
 import { globSync, readFileSync, writeFileSync } from 'node:fs';
-import { dayOf, readNote } from './read-note.js';
+import { postIdOf } from './post-folders.js';
+import { readNote } from './read-note.js';
 
-const entries = globSync('content/posts/*/title.md').sort().reverse().map(path => {
+const paths = globSync(['content/posts/*/title.md', 'content/posts/*/*/title.md']).filter(postIdOf)
+  .sort((a, b) => postIdOf(b).localeCompare(postIdOf(a), 'en', { numeric: true }));
+const entries = paths.map(path => {
   const { meta } = readNote(path, readFileSync(path, 'utf8'));
-  const day = dayOf(path);
+  const postId = postIdOf(path);
+  const [day] = postId.split('/');
   const title = meta.title.replace(/[&<>"'\[\]]/g, char => '&#' + char.charCodeAt(0) + ';').replaceAll('\n', ' ');
-  return '- ' + day + ' · [' + title + '](https://dhyun2.github.io/TIL/notes/' + day + '/)';
+  return '- ' + day + ' · [' + title + '](https://dhyun2.github.io/TIL/notes/' + postId + '/)';
 });
 const start = '<!-- study-index:start -->';
 const end = '<!-- study-index:end -->';
