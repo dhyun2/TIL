@@ -6,6 +6,7 @@ const model = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 const guide = readFileSync(new URL('../../docs/study-review.md', import.meta.url), 'utf8');
 const conversationGuide = '학습 대화에서 작성자의 발언에 한국어로 직접 답한다. 글과 앞선 대화에서 근거를 짚고 필요할 때만 점검 질문을 하나 덧붙인다. 작성자의 발언이나 실험 결과를 만들어내지 않는다.';
 const text = { type: 'string' };
+const timeoutMs = 300_000;
 
 export function signature(body) {
   return createHash('sha256').update([model, guide, JSON.stringify(categories), body].join('\0')).digest('hex');
@@ -15,9 +16,11 @@ async function generate(instructions, input, fields) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw Error('GEMINI_API_KEY를 저장소 Actions secret에 등록해 주세요.');
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent';
+  const started = Date.now();
+  console.info(`Gemini ${model} 요청 시작 (제한 ${timeoutMs / 1000}초)`);
   const response = await fetch(url, {
     method: 'POST', headers: { 'x-goog-api-key': key, 'content-type': 'application/json' },
-    signal: AbortSignal.timeout(100_000),
+    signal: AbortSignal.timeout(timeoutMs),
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: instructions }] },
       contents: [{ role: 'user', parts: [{ text: JSON.stringify(input) }] }],
@@ -26,8 +29,10 @@ async function generate(instructions, input, fields) {
       } },
     }),
   });
+  console.info(`Gemini 응답 헤더 수신 · HTTP ${response.status} · ${Date.now() - started}ms`);
   if (!response.ok) throw Error('Gemini HTTP ' + response.status + ' · 키, 모델, 할당량을 확인하세요.');
   const candidate = (await response.json()).candidates?.[0];
+  console.info(`Gemini 응답 본문 수신 완료 · ${Date.now() - started}ms`);
   if (candidate?.finishReason !== 'STOP') throw Error('Gemini 응답이 완료되지 않았습니다.');
   return JSON.parse(candidate.content.parts.filter(part => !part.thought).map(part => part.text).join(''));
 }
